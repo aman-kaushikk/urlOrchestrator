@@ -1,6 +1,10 @@
 spring:
   application:
     name: urlOrchestrator
+  data:
+    redis:
+      timeout: 1s
+      connect-timeout: 1s
   datasource:
     hikari:
       connection-timeout: 30000
