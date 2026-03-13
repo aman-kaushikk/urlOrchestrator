@@ -36,6 +36,19 @@ public class UrlService {
 
     public String resolvedUrl(String code) {
         log.info("code for url shorten: {}", code);
-        return "https://www.google.com";
+        // First, try to get the long URL from Redis cache
+        String cachedUrl = redisTemplate.opsForValue().get("url:" + code);
+        if (cachedUrl != null) {
+            log.info("Cache hit for code: {}. Resolved URL: {}", code, cachedUrl);
+            return cachedUrl;
+        }
+        final var mapping = presistence.findByShortCode(code)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid shorten code: " + code));
+        String longUrl = mapping.getLongUrl();
+        // Cache the resolved URL in Redis for future requests
+        redisTemplate.opsForValue().set("url:" + code, longUrl);
+        log.info("Cache miss for code(Original): {}. Resolved URL(sortenCode): {}", code, longUrl);
+        return longUrl;
+
     }
 }
