@@ -28,7 +28,7 @@ public class UrlService {
         log.info("Generated shorten code: {}", shortenCode);
         var savedUrlMapping = presistence.save(shortenCode, longUrl);
         // Cache the mapping in Redis
-        redisTemplate.opsForValue().set(shortenCode, longUrl);
+        redisTemplate.opsForValue().set("url:"+shortenCode, longUrl);
         log.info("Cached in Redis - Code: {}, URL: {}", shortenCode, longUrl);
 
         return savedUrlMapping.getShortCode();
