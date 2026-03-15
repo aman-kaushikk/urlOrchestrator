@@ -39,10 +39,10 @@ public class UrlService {
     public String resolvedUrl(String code) {
         log.info("code for url shorten: {}", code);
         // First, try to get the long URL from Redis cache
-        String cachedUrl = redisTemplate.opsForValue().get("url:" + code);
+        final var cachedUrl = redisTemplate.opsForValue().get("url:" + code);
         if (cachedUrl != null) {
-            log.info("Cache hit for code: {}. Resolved URL: {}", code, cachedUrl);
-            producer.send(code);
+            log.info("cachedUrl original url for shorten code {} : {}", code, cachedUrl);
+            producer.send(code, cachedUrl);
             return cachedUrl;
         }
         final var mapping = presistence.findByShortCode(code)
@@ -51,7 +51,7 @@ public class UrlService {
         // Cache the resolved URL in Redis for future requests
         redisTemplate.opsForValue().set("url:" + code, longUrl);
         log.info("Cache miss for code(Original): {}. Resolved URL(sortenCode): {}", code, longUrl);
-        producer.send(code);
+        producer.send(code,longUrl);
         return longUrl;
 
     }
