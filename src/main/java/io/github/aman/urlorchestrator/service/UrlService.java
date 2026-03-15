@@ -1,5 +1,6 @@
 package io.github.aman.urlorchestrator.service;
 
+import io.github.aman.urlorchestrator.kafka.RedirectEventProducer;
 import io.github.aman.urlorchestrator.persistence.UrlMappingPersistence;
 import io.github.aman.urlorchestrator.utility.Base62;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class UrlService {
     private final UrlMappingPersistence presistence;
     private final SnowflakeIdGenerator idGenerator;
     private final RedisTemplate<String,String> redisTemplate;
+    private final RedirectEventProducer producer;
 
     @Transactional
     public String generatedShortenCode(String longUrl) {
@@ -40,6 +42,7 @@ public class UrlService {
         String cachedUrl = redisTemplate.opsForValue().get("url:" + code);
         if (cachedUrl != null) {
             log.info("Cache hit for code: {}. Resolved URL: {}", code, cachedUrl);
+            producer.send(code);
             return cachedUrl;
         }
         final var mapping = presistence.findByShortCode(code)
@@ -48,6 +51,7 @@ public class UrlService {
         // Cache the resolved URL in Redis for future requests
         redisTemplate.opsForValue().set("url:" + code, longUrl);
         log.info("Cache miss for code(Original): {}. Resolved URL(sortenCode): {}", code, longUrl);
+        producer.send(code);
         return longUrl;
 
     }

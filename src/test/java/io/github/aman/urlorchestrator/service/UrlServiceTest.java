@@ -2,6 +2,7 @@ package io.github.aman.urlorchestrator.service;
 
 
 import io.github.aman.urlorchestrator.entity.UrlMapping;
+import io.github.aman.urlorchestrator.kafka.RedirectEventProducer;
 import io.github.aman.urlorchestrator.persistence.UrlMappingPersistence;
 import io.github.aman.urlorchestrator.utility.Base62;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,10 @@ class UrlServiceTest {
 
     @Mock
     private ValueOperations<String, String> valueOperations;
+
+    @Mock
+    private RedirectEventProducer producer;
+
 
     @InjectMocks
     private UrlService urlService;
@@ -103,6 +108,7 @@ class UrlServiceTest {
         urlMapping.setLongUrl(dbUrl);
         urlMapping.setCreatedAt(LocalDateTime.now());
 
+        doNothing().when(producer).send(code);
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("url:" + code)).thenReturn(null);
         when(persistence.findByShortCode(code)).thenReturn(Optional.of(urlMapping));
@@ -117,6 +123,7 @@ class UrlServiceTest {
         verify(valueOperations).get("url:" + code);
         verify(persistence).findByShortCode(code);
         verify(valueOperations).set("url:" + code, dbUrl);
+        verify(producer).send(code);
     }
 
     // -------------------------------
