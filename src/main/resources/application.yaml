@@ -18,6 +18,12 @@ spring:
       properties:
         hibernate:
           format_sql: true
+  kafka:
+    properties:
+      # ---- AdminClient timeouts ----
+      request.timeout.ms: 3000
+      default.api.timeout.ms: 3000
+      metadata.fetch.timeout.ms: 3000
   profiles:
     active:
       - dev

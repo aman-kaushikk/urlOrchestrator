@@ -5,6 +5,11 @@ spring:
     redis:
       host: localhost
       port: 6379
+  kafka:
+    bootstrap-servers: localhost:29092
+    jpa:
+      hibernate:
+        ddl-auto: update
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres_db
     username: root
