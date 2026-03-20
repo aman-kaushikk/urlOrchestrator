@@ -6,7 +6,7 @@ export const options = {
     scenarios: {
         redirect_load: {
             executor: 'constant-arrival-rate',
-            rate: 100,      // 1M requests
+            rate: 10000,      // 1M requests
             timeUnit: '1s',
             duration: '5s',
             preAllocatedVUs: 20000,
