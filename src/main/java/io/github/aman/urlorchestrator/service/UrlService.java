@@ -1,5 +1,6 @@
 package io.github.aman.urlorchestrator.service;
 
+import io.github.aman.urlorchestrator.api.advice.LinkNotFoundException;
 import io.github.aman.urlorchestrator.kafka.RedirectEventProducer;
 import io.github.aman.urlorchestrator.persistence.UrlMappingPersistence;
 import io.github.aman.urlorchestrator.utility.Base62;
@@ -45,7 +46,7 @@ public class UrlService {
             return cachedUrl;
         }
         final var mapping = presistence.findByShortCode(code)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid shorten code: " + code));
+                .orElseThrow(() -> new LinkNotFoundException(code));
         String longUrl = mapping.getLongUrl();
         // Cache the resolved URL in Redis for future requests
         redisTemplate.opsForValue().set("url:" + code, longUrl);
