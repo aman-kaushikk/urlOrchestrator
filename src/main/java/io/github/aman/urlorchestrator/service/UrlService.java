@@ -18,30 +18,29 @@ public class UrlService {
 
     private final UrlMappingPersistence presistence;
     private final SnowflakeIdGenerator idGenerator;
-    private final RedisTemplate<String,String> redisTemplate;
+//    private final RedisTemplate<String,String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final RedirectEventProducer producer;
 
     @Transactional
     public String generatedShortenCode(String longUrl) {
-        log.info("Generating snowflake id for url: {}", longUrl);
+        log.debug("Generating snowflake id for url: {}", longUrl);
         final var snowflakeId = idGenerator.nextId();
         final var shortenCode = Base62.encode(snowflakeId);
-        log.info("Generated Snowflake id: {}", snowflakeId);
-        log.info("Generated shorten code: {}", shortenCode);
+        log.debug("Generated shorten code: {}", shortenCode);
         var savedUrlMapping = presistence.save(shortenCode, longUrl);
         // Cache the mapping in Redis
         redisTemplate.opsForValue().set("url:"+shortenCode, longUrl);
-        log.info("Cached in Redis - Code: {}, URL: {}", shortenCode, longUrl);
+        log.debug("Cached in Redis - Code: {}, URL: {}", shortenCode, longUrl);
 
         return savedUrlMapping.getShortCode();
     }
 
     public String resolvedUrl(String code) {
-        log.info("code for url shorten: {}", code);
         // First, try to get the long URL from Redis cache
         final var cachedUrl = redisTemplate.opsForValue().get("url:" + code);
         if (cachedUrl != null) {
-            log.info("cachedUrl original url for shorten code {} : {}", code, cachedUrl);
+            log.debug("cachedUrl original url for shorten code {} : {}", code, cachedUrl);
             producer.send(code, cachedUrl);
             return cachedUrl;
         }
@@ -50,7 +49,7 @@ public class UrlService {
         String longUrl = mapping.getLongUrl();
         // Cache the resolved URL in Redis for future requests
         redisTemplate.opsForValue().set("url:" + code, longUrl);
-        log.info("Cache miss for code(Original): {}. Resolved URL(sortenCode): {}", code, longUrl);
+        log.debug("Cache miss for code(Original): {}. Resolved URL(sortenCode): {}", code, longUrl);
         producer.send(code,longUrl);
         return longUrl;
 
